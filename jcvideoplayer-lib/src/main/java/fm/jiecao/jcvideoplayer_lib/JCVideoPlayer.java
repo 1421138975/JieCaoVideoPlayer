@@ -193,7 +193,6 @@ public abstract class JCVideoPlayer extends FrameLayout implements View.OnClickL
             JCMediaManager.intance().listener.onCompletion();
         }
         JCMediaManager.intance().listener = this;
-//        addSurfaceView();
         JCMediaManager.intance().prepareToPlay(getContext(), url);
         if (!IF_CURRENT_IS_FULLSCREEN) {
             JCMediaManager.intance().mediaPlayer.setDisplay(surfaceHolder);
@@ -203,16 +202,17 @@ public abstract class JCVideoPlayer extends FrameLayout implements View.OnClickL
 
     private void addSurfaceView() {
         if (rlSurfaceContainer.getChildCount() > 0) {
+            surfaceView.setVisibility(View.GONE);
             rlSurfaceContainer.removeAllViews();
         }
-        surfaceView = new JCResizeSurfaceView(getContext());
-        surfaceId = surfaceView.getId();
-        surfaceHolder = surfaceView.getHolder();
-        surfaceHolder.addCallback(this);
-//        surfaceView.setOnClickListener(this);
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
-        rlSurfaceContainer.addView(surfaceView, layoutParams);
+//        surfaceView = new JCResizeSurfaceView(getContext());
+//        surfaceId = surfaceView.getId();
+//        surfaceHolder = surfaceView.getHolder();
+//        surfaceHolder.addCallback(this);
+////        surfaceView.setOnClickListener(this);
+//        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+//        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+//        rlSurfaceContainer.addView(surfaceView, layoutParams);
     }
 
     @Override
@@ -255,16 +255,28 @@ public abstract class JCVideoPlayer extends FrameLayout implements View.OnClickL
 
     }
 
+    boolean ret = true;
+
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        ifNeedCreateSurfaceView = false;
         if (IF_CURRENT_IS_FULLSCREEN) {//fullscreen from normal
             JCMediaManager.intance().mediaPlayer.setDisplay(surfaceHolder);
         }
         if (BACK_FROM_FULLSCREEN) {
+            if (ret) {
+                JCMediaManager.intance().mediaPlayer.setDisplay(null);
+                addSurfaceView();
+                ret = false;
+                return;
+            }
+            if (surfaceHolder.getSurface().isValid()) {
+                JCMediaManager.intance().mediaPlayer.setDisplay(surfaceHolder);
+            } else {
+                addSurfaceView();
+            }
             BACK_FROM_FULLSCREEN = false;
-            JCMediaManager.intance().mediaPlayer.setDisplay(surfaceHolder);
         }
-        ifNeedCreateSurfaceView = false;
     }
 
     @Override
@@ -274,6 +286,7 @@ public abstract class JCVideoPlayer extends FrameLayout implements View.OnClickL
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
         ifNeedCreateSurfaceView = true;
+//        addSurfaceView();
     }
 
     private boolean ifNeedCreateSurfaceView = false;
